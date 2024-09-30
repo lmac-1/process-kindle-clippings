@@ -3,15 +3,19 @@
 This is a Python script that processes your Kindle clippings file into a JSON file in the following format:
 
 ```
-[
-    {
-        "title": "Title of book",
-        "author": "Name of author",
-        "quote": "Quote you highlighted in Kindle",
-        "date": "Date and time"
-    },
-    ...
-]
+{
+    "quotes": [
+        {
+            "title": "Title of book",
+            "author": "Name of author",
+            "quote": "Quote you highlighted in Kindle",
+            "date": "Date and time"
+        },
+        ...
+    ],
+    "authors": ['Author name', ...]
+    "books": ['Book name', ...]
+}
 ```
 
 ## How to use
@@ -22,5 +26,5 @@ This is a Python script that processes your Kindle clippings file into a JSON fi
 
 This will output the following file(s):
 
-- `quotes.json` file with the quotes in JSON format
+- `quotes.json` file with quotes, authors and books in JSON format
 - `bad_entries.log` file, if there were any clippings that couldn't be processed

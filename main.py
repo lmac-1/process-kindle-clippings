@@ -16,6 +16,18 @@ def read_clippings(file_path):
         # each entry in clippings is separated by ==========
         clippings = content.split("==========\n")
         return clippings
+    
+def process_author_name(author): 
+    # Split the author name by comma (if it exists)
+    parts = author.split(', ')
+    
+    if len(parts) == 2:
+        surname, firstname = parts
+        # Return the author name as "firstname surname"
+        return f"{firstname} {surname}"
+    else:
+        # If name doesn't match the format, return it as is
+        return author
 
 def extract_quote_info(clipping):
     lines = clipping.strip().split('\n')
@@ -30,8 +42,9 @@ def extract_quote_info(clipping):
     if not match: 
         logging.warning(f"No book info matched: {book_info} {lines}")
         return None # skip if book title and author missing
-    title, author = match.groups()
-
+    title, author_raw = match.groups()
+    author = process_author_name(author_raw)
+    
     # second line: the date
     date_line = lines[1].strip()
     date_match = re.search(r"Added on (.+)$", date_line)
@@ -52,11 +65,28 @@ def extract_quote_info(clipping):
 
 def process_clippings(clippings):
     quotes = []
+    authors_set = set()
+    books_set = set()
+    
     for clipping in clippings:
         quote_info = extract_quote_info(clipping)
+        
         if (quote_info):
             quotes.append(quote_info)
-    return quotes
+            
+            # Add unique author to the set
+            author = quote_info["author"]
+            authors_set.add(author)
+            
+            # create list of unique books
+            book = quote_info["title"]
+            books_set.add(book)
+                
+    return {
+        "quotes": quotes, 
+        "authors": sorted(authors_set), # sorted alphabetically
+        "books": sorted(books_set)      # sorted alphabetically
+    }
 
 def save_to_json(quotes, output_file):
     with open(output_file, 'w', encoding='utf-8') as file:
@@ -65,13 +95,23 @@ def save_to_json(quotes, output_file):
 file_path = 'clippings.txt'
 clippings = read_clippings(file_path)
 totalClippings = len(clippings)
-quotes = process_clippings(clippings)
+
+processed_clippings = process_clippings(clippings)
+quotes = processed_clippings["quotes"]
+authors = processed_clippings["authors"]
+books = processed_clippings["books"]
 totalQuotes = len(quotes)
 
 print(f"Processed {str(totalQuotes)} quote{'s' [:totalQuotes > 1]} from {str(totalClippings)} clipping{'s' [:totalClippings > 1]}.")
-
+print(f"{str(len(authors))} authors and {str(len(books))} books found")
 if (totalClippings != totalQuotes):
     print(f'{totalClippings - totalQuotes} clippings could not be processed. Please see logs in bad_entries.log')
 
+output = {
+    "quotes": quotes,
+    "authors": authors,
+    "books": books
+}
+
 # Save to JSON file
-save_to_json(quotes, 'quotes.json')
+save_to_json(output, 'quotes.json')
