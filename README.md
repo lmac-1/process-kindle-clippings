@@ -20,4 +20,7 @@ This is a Python script that processes your Kindle clippings file into a JSON fi
 2. Add your clippings file to the project and name the file `clippings.txt`
 3. Run the python script: `python3 main.py`
 
-This will output a `quotes.json` file.
+This will output the following file(s):
+
+- `quotes.json` file with the quotes in JSON format
+- `bad_entries.log` file, if there were any clippings that couldn't be processed
