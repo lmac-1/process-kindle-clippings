@@ -1,6 +1,7 @@
 import re
 import json
 import logging
+from datetime import datetime
 
 logging.basicConfig(
     filename='bad_entries.log', 
@@ -42,7 +43,7 @@ def extract_quote_info(clipping):
     if not match: 
         logging.warning(f"No book info matched: {book_info} {lines}")
         return None # skip if book title and author missing
-    title, author_raw = match.groups()
+    book, author_raw = match.groups()
     author = process_author_name(author_raw)
     
     # second line: the date
@@ -53,14 +54,17 @@ def extract_quote_info(clipping):
         logging.warning(f"No date matched: {date_line} {lines}")
         return None  # skip if the date is not found
 
-    date = date_match.group(1)
+    date_string = date_match.group(1)
+    date_format = "%A, %d %B %Y %H:%M:%S"
+    date = datetime.strptime(date_string, date_format)
+    formatted_date = date.strftime("%d/%m/%Y")
 
     # third line: the quote
     quote = lines[3].strip()
-    return { 'title': title,
+    return { 'book': book,
             'author': author,
             'quote': quote,
-            'date': date } 
+            'date': formatted_date } 
             
 
 def process_clippings(clippings):
@@ -79,7 +83,7 @@ def process_clippings(clippings):
             authors_set.add(author)
             
             # create list of unique books
-            book = quote_info["title"]
+            book = quote_info["book"]
             books_set.add(book)
                 
     return {
